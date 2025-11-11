@@ -31,7 +31,46 @@ async function getLocationAndWeather() {
         status.textContent = `📍 Provinsi terdeteksi: ${provinsi}`;
 
         // 2️⃣ Ambil data XML BMKG sesuai provinsi
-        const provinsiBMKG = provinsi.replace(/\s+/g, "");
+        // Ubah nama provinsi ke format BMKG
+const mapProvinsi = {
+  "West Java": "JawaBarat",
+  "Central Java": "JawaTengah",
+  "East Java": "JawaTimur",
+  "Jakarta": "DKIJakarta",
+  "Banten": "Banten",
+  "Yogyakarta": "DI Yogyakarta",
+  "Bali": "Bali",
+  "West Sumatra": "SumateraBarat",
+  "North Sumatra": "SumateraUtara",
+  "South Sumatra": "SumateraSelatan",
+  "Aceh": "Aceh",
+  "Riau": "Riau",
+  "West Kalimantan": "KalimantanBarat",
+  "East Kalimantan": "KalimantanTimur",
+  "South Kalimantan": "KalimantanSelatan",
+  "Central Kalimantan": "KalimantanTengah",
+  "North Kalimantan": "KalimantanUtara",
+  "West Nusa Tenggara": "NusaTenggaraBarat",
+  "East Nusa Tenggara": "NusaTenggaraTimur",
+  "Papua": "Papua",
+  "West Papua": "PapuaBarat",
+  "Maluku": "Maluku",
+  "North Maluku": "MalukuUtara",
+  "Bangka Belitung Islands": "KepBangkaBelitung",
+  "Riau Islands": "KepulauanRiau",
+  "Lampung": "Lampung",
+  "Bengkulu": "Bengkulu",
+  "Jambi": "Jambi",
+  "Gorontalo": "Gorontalo",
+  "North Sulawesi": "SulawesiUtara",
+  "Central Sulawesi": "SulawesiTengah",
+  "South Sulawesi": "SulawesiSelatan",
+  "Southeast Sulawesi": "SulawesiTenggara",
+  "West Sulawesi": "SulawesiBarat"
+};
+
+const provinsiBMKG = mapProvinsi[provinsi] || provinsi.replace(/\s+/g, "");
+
         const url = `https://data.bmkg.go.id/DataMKG/MEWS/DigitalForecast/DigitalForecast-${provinsiBMKG}.xml`;
 
         const res = await fetch(url);
