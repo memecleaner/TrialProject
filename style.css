@@ -1,26 +1,56 @@
 body {
-  font-family: "Poppins", sans-serif;
-  background: linear-gradient(to bottom, #89f7fe, #66a6ff);
-  color: #222;
-  text-align: center;
-  padding: 2rem;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  background-color: #f5f7fb;
+  margin: 0;
+  padding: 16px;
+  color: #111827;
 }
 
 .container {
-  background: white;
-  border-radius: 16px;
-  padding: 2rem;
-  max-width: 400px;
-  margin: auto;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-width: 760px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 8px 30px rgba(2,6,23,0.08);
 }
 
-#status {
-  font-weight: 600;
-  margin-bottom: 1rem;
+h1 { margin: 0; color:#0b6fb5; }
+h4 { margin: 4px 0 12px; color:#52606d; font-weight:500; }
+
+#lokasi {
+  font-weight:700;
+  margin: 8px 0 12px;
 }
 
-#cuaca {
-  margin-top: 1rem;
-  font-size: 1rem;
+/* Map */
+#map {
+  height: 340px;
+  width: 100%;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  box-shadow: 0 6px 18px rgba(2,6,23,0.06);
+}
+
+/* Cuaca cards */
+.cuaca-item {
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 10px;
+  background: linear-gradient(180deg,#fff,#f7fcff);
+  box-shadow: 0 2px 8px rgba(2,6,23,0.04);
+}
+
+.cuaca-item.besar { font-size:1.05rem; font-weight:600; background:#e6f7ff; text-align:center; }
+
+.cuaca-list { display:block; max-height:360px; overflow:auto; padding:6px 0; }
+
+.cuaca-slot { font-size:0.9rem; color:#6b7280; margin-top:6px; }
+
+.info-distance { margin-top:8px; color:#374151; font-weight:600; }
+
+/* small screens */
+@media (max-width:640px){
+  #map { height: 260px; }
+  .container { padding:12px; }
 }
