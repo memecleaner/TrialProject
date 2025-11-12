@@ -15,8 +15,11 @@ body {
   box-shadow: 0 8px 30px rgba(2,6,23,0.08);
 }
 
-h1 { margin: 0; color:#0b6fb5; }
-h4 { margin: 4px 0 12px; color:#52606d; font-weight:500; }
+h1 { 
+  margin: 0; color:#0b6fb5; 
+  text-align: center;
+}
+h4 { margin: 4px 0 12px; color:#52606d; font-weight:500; text-align: center;}
 
 #lokasi {
   font-weight:700;
