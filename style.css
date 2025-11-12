@@ -23,6 +23,21 @@ h4 { margin: 4px 0 12px; color:#52606d; font-weight:500; }
   margin: 8px 0 12px;
 }
 
+/* Tombol refresh */
+#refresh-btn {
+  display:block;
+  margin: 0 auto 10px;
+  background:#0b6fb5;
+  color:white;
+  border:none;
+  border-radius:8px;
+  padding:8px 16px;
+  cursor:pointer;
+  font-weight:600;
+  transition:background 0.3s;
+}
+#refresh-btn:hover { background:#095d96; }
+
 /* Map */
 #map {
   height: 340px;
@@ -49,7 +64,6 @@ h4 { margin: 4px 0 12px; color:#52606d; font-weight:500; }
 
 .info-distance { margin-top:8px; color:#374151; font-weight:600; }
 
-/* small screens */
 @media (max-width:640px){
   #map { height: 260px; }
   .container { padding:12px; }
