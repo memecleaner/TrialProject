@@ -1,24 +1,39 @@
-// Elements
+// Elemen utama
 const lokasiEl = document.getElementById("lokasi");
 const cuacaSekarangEl = document.getElementById("cuaca-sekarang");
 const cuacaPrediksiEl = document.getElementById("cuaca-prediksi");
+const refreshBtn = document.getElementById("refresh-btn");
 
-// ===== Lokasi BMKG Depok (kode + koordinat) - tetap dipakai untuk pencocokan =====
+// Daftar lokasi BMKG (kode ADM4 BMKG)
 const lokasiBMKG = [
-  { nama:"Beji", kode:"32.76.06.1001"},
-  { nama:"Tugu", kode:"32.76.02.1009"},
-  { nama:"Pondok Cina", kode:"32.76.06.1005"},
-  { nama:"Depok Jaya", kode:"32.76.01.1007"},
-  { nama:"Sawangan", kode:"32.76.03.1010"},
-  { nama:"Cipayung", kode:"32.76.07.1001"},
-  { nama:"Harjamukti", kode:"32.76.02.1007"},
-  { nama:"Duren Seribu (Bojongsari)", kode:"32.76.11.1007"},
-  { nama:"Depok (Pancoran Mas)", kode:"32.76.01.1006"},
-  { nama:"Citayam (Tajurhalang)", kode:"32.01.37.2002"},
-  { nama:"Cipayung Jaya", kode:"32.76.07.1002"}
+  {nama:"Beji", kode:"32.76.06.1001"},
+  {nama:"Tugu", kode:"32.76.02.1009"},
+  {nama:"Pondok Cina", kode:"32.76.06.1005"},
+  {nama:"Depok Jaya", kode:"32.76.01.1007"},
+  {nama:"Sawangan", kode:"32.76.03.1010"},
+  {nama:"Cipayung", kode:"32.76.07.1001"},
+  {nama:"Harjamukti", kode:"32.76.02.1007"},
+  {nama:"Duren Seribu (Bojongsari)", kode:"32.76.11.1007"},
+  {nama:"Depok (Pancoran Mas)", kode:"32.76.01.1006"},
+  {nama:"Citayam (Tajurhalang)", kode:"32.01.37.2002"},
+  {nama:"Cipayung Jaya", kode:"32.76.07.1002"},
+  {nama:"Cimanggis", kode:"32.76.02.1001"},
+  {nama:"Sukmajaya", kode:"32.76.05.1003"},
+  {nama:"Tapos", kode:"32.76.04.1001"},
+  {nama:"Cilodong", kode:"32.76.09.1002"},
+  {nama:"Limo", kode:"32.76.10.1001"},
+  {nama:"Cinere", kode:"32.76.08.1001"},
+  // pinggiran Depok
+  {nama:"Cibinong", kode:"32.01.07.1001"},
+  {nama:"Parung", kode:"32.01.13.1001"},
+  {nama:"Gunung Sindur", kode:"32.01.09.1001"},
+  {nama:"Jagakarsa", kode:"31.74.10.1001"},
+  {nama:"Lenteng Agung", kode:"31.74.10.1003"},
+  {nama:"Pasar Minggu", kode:"31.74.09.1003"},
+  {nama:"Cinangka", kode:"32.76.03.1009"}
 ];
 
-// koordinat untuk tiap nama (dipakai untuk menandai titik BMKG)
+// Koordinat wilayah untuk pencocokan lokasi & marker peta
 const lokasiBMKGKoord = {
   "Beji": {lat:-6.4026, lon:106.7940},
   "Tugu": {lat:-6.3615, lon:106.8497},
@@ -30,10 +45,24 @@ const lokasiBMKGKoord = {
   "Duren Seribu (Bojongsari)": {lat:-6.4172, lon:106.7481},
   "Depok (Pancoran Mas)": {lat:-6.3950, lon:106.8180},
   "Citayam (Tajurhalang)": {lat:-6.4660, lon:106.7750},
-  "Cipayung Jaya": {lat:-6.3805, lon:106.8442}
+  "Cipayung Jaya": {lat:-6.3805, lon:106.8442},
+  "Cimanggis": {lat:-6.3525, lon:106.8673},
+  "Sukmajaya": {lat:-6.3810, lon:106.8446},
+  "Tapos": {lat:-6.4060, lon:106.8900},
+  "Cilodong": {lat:-6.4225, lon:106.8640},
+  "Limo": {lat:-6.3668, lon:106.7897},
+  "Cinere": {lat:-6.3459, lon:106.7875},
+  "Cibinong": {lat:-6.4850, lon:106.8540},
+  "Parung": {lat:-6.4548, lon:106.7398},
+  "Gunung Sindur": {lat:-6.3921, lon:106.7087},
+  "Jagakarsa": {lat:-6.3345, lon:106.8223},
+  "Lenteng Agung": {lat:-6.3395, lon:106.8331},
+  "Pasar Minggu": {lat:-6.2892, lon:106.8316},
+  "Cinangka": {lat:-6.3660, lon:106.7800}
 };
 
-// Haversine (km) — tetap dipakai untuk perhitungan jarak
+
+// Fungsi hitung jarak (Haversine)
 function hitungJarak(lat1, lon1, lat2, lon2) {
   const R = 6371;
   const dLat = (lat2-lat1)*Math.PI/180;
@@ -46,83 +75,94 @@ function hitungJarak(lat1, lon1, lat2, lon2) {
 // ===== Inisialisasi peta Leaflet =====
 const map = L.map('map').setView([-6.4025, 106.7942], 12);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '&copy; OpenStreetMap contributors'
+  attribution: '&copy; OpenStreetMap'
 }).addTo(map);
 
+// Marker & garis
 let userMarker = null;
 let bmkgMarker = null;
 let lineBetween = null;
 
-// Fungsi untuk menampilkan marker user & BMKG terdekat, tanpa menampilkan lat/lon angka
-function showOnMap(userLat, userLon, namaBMKG, bmkgLat, bmkgLon, jarakKm) {
-  // set view tengah antara dua titik supaya keduanya kelihatan
-  const bounds = L.latLngBounds([[userLat, userLon], [bmkgLat, bmkgLon]]);
-  map.fitBounds(bounds.pad(0.25));
+// Custom icon
+const iconUser = L.icon({
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34]
+});
 
-  // user marker (biru)
-  if (userMarker) userMarker.setLatLng([userLat, userLon]);
-  else userMarker = L.marker([userLat, userLon], {title: "Lokasi Anda", opacity:0.95}).addTo(map).bindPopup("Lokasi Anda");
+const iconBMKG = L.icon({
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34]
+});
 
-  // bmkg marker (hijau)
-  if (bmkgMarker) {
-    bmkgMarker.setLatLng([bmkgLat, bmkgLon]).setPopupContent(`${namaBMKG} (BMKG)`);
-  } else {
-    bmkgMarker = L.marker([bmkgLat, bmkgLon], {
-      title: `${namaBMKG} (BMKG)`,
-      opacity:0.95,
-      icon: L.icon({ iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png', iconSize:[25,41] })
-    }).addTo(map).bindPopup(`${namaBMKG} (BMKG)`);
-  }
+// ===== Tambahkan semua tower BMKG ke map =====
+Object.keys(lokasiBMKGKoord).forEach(nama => {
+  const {lat, lon} = lokasiBMKGKoord[nama];
+  L.marker([lat, lon], {icon: iconBMKG}).addTo(map).bindPopup(`BMKG: ${nama}`);
+});
 
-  // garis penghubung
-  if (lineBetween) map.removeLayer(lineBetween);
-  lineBetween = L.polyline([[userLat, userLon],[bmkgLat, bmkgLon]], {color:'#0078d7', weight:3, opacity:0.7}).addTo(map);
-
-  // tampilkan teks lokasi + jarak (tanpa angka lat/lon)
-  lokasiEl.innerHTML = `📍 Lokasi terdeteksi: <b>${namaBMKG}, Depok</b>
-                        <div class="info-distance">Jarak ke stasiun BMKG: ${jarakKm.toFixed(2)} km</div>`;
-}
-
-// ===== Ambil lokasi user =====
-navigator.geolocation.getCurrentPosition(async (pos) => {
-  const lat = pos.coords.latitude;
-  const lon = pos.coords.longitude;
-
-  // cari stasiun BMKG terdekat (pencocokan dengan array lokasiBMKG & koordinat)
+// ===== Fungsi tampilkan posisi user + BMKG terdekat =====
+function tampilkanLokasi(lat, lon) {
   let terdekat = lokasiBMKG[0];
   let minJarak = Infinity;
   lokasiBMKG.forEach(lok => {
     const k = lokasiBMKGKoord[lok.nama];
-    if (!k) return;
     const jarak = hitungJarak(lat, lon, k.lat, k.lon);
-    if (jarak < minJarak) {
+    if(jarak < minJarak) {
       minJarak = jarak;
       terdekat = lok;
     }
   });
 
-  // tampilkan peta + garis penghubung, tanpa lat/lon angka
   const bmkgCoord = lokasiBMKGKoord[terdekat.nama];
-  showOnMap(lat, lon, terdekat.nama, bmkgCoord.lat, bmkgCoord.lon, minJarak);
 
-  // ambil data cuaca dari BMKG berdasarkan kode
-  await fetchCuaca(terdekat.kode, terdekat.nama);
+  // marker user (biru)
+  if (userMarker) userMarker.setLatLng([lat, lon]);
+  else userMarker = L.marker([lat, lon], {icon: iconUser}).addTo(map).bindPopup("Lokasi Anda");
 
-}, (err) => {
-  // Kalau gagal ambil GPS — tampilkan pesan dan coba fallback IP (ini tetap tidak tunjukkan lat/lon)
-  lokasiEl.textContent = "Gagal mendeteksi lokasi otomatis. (Coba refresh atau buka di HP dengan GPS)";
-  cuacaSekarangEl.textContent = "Prediksi cuaca tidak tersedia.";
-  console.warn("Geolocation error:", err);
-}, { enableHighAccuracy: true, timeout: 15000 });
+  // garis penghubung
+  if (lineBetween) map.removeLayer(lineBetween);
+  lineBetween = L.polyline([[lat, lon],[bmkgCoord.lat, bmkgCoord.lon]], {color:'#0078d7', weight:3, opacity:0.7}).addTo(map);
 
-// ===== Fungsi fetch cuaca (sama seperti milikmu) =====
-async function fetchCuaca(kode, nama) {
+  // perbarui info
+  lokasiEl.innerHTML = `📍 Lokasi terdeteksi: <b>${terdekat.nama}, Depok</b>
+                        <div class="info-distance">Jarak ke stasiun BMKG: ${minJarak.toFixed(2)} km</div>`;
+
+  map.fitBounds([[lat, lon], [bmkgCoord.lat, bmkgCoord.lon]], {padding:[40,40]});
+
+  // fetch cuaca
+  fetchCuaca(terdekat.kode);
+}
+
+// ===== Ambil lokasi user =====
+async function deteksiLokasi() {
+  lokasiEl.textContent = "📡 Mendeteksi lokasi...";
+  if (userMarker) map.removeLayer(userMarker);
+  if (lineBetween) map.removeLayer(lineBetween);
+
+  navigator.geolocation.getCurrentPosition(
+    pos => tampilkanLokasi(pos.coords.latitude, pos.coords.longitude),
+    err => {
+      lokasiEl.textContent = "❌ Gagal mendeteksi lokasi.";
+      console.warn("Geolocation error:", err);
+    },
+    { enableHighAccuracy: true, timeout: 15000 }
+  );
+}
+
+// ===== Tombol refresh =====
+refreshBtn.addEventListener("click", deteksiLokasi);
+
+// ===== Ambil data cuaca =====
+async function fetchCuaca(kode) {
   const url = `https://api.bmkg.go.id/publik/prakiraan-cuaca?adm4=${kode}`;
   try {
     const res = await fetch(url);
     const data = await res.json();
-
-    if(!data.data || !data.data[0].cuaca) {
+    if (!data.data || !data.data[0].cuaca) {
       cuacaSekarangEl.textContent = "Prediksi cuaca tidak tersedia.";
       return;
     }
@@ -130,43 +170,30 @@ async function fetchCuaca(kode, nama) {
     const semuaSlot = data.data[0].cuaca.flat();
     const now = new Date();
 
-    // cari slot paling dekat sekarang
-    let slotTerdekat = null;
-    let diffMin = Infinity;
-    semuaSlot.forEach(slot=>{
-      const slotTime = new Date(slot.local_datetime);
-      const diff = Math.abs(slotTime - now);
-      if(diff < diffMin){
-        diffMin = diff;
-        slotTerdekat = slot;
-      }
+    // slot terdekat
+    let slotTerdekat = semuaSlot.reduce((a,b)=>{
+      return Math.abs(new Date(a.local_datetime)-now) < Math.abs(new Date(b.local_datetime)-now) ? a:b;
     });
 
-    // tampilkan cuaca sekarang (rapi)
-    if(slotTerdekat){
-      cuacaSekarangEl.innerHTML = `
-        <div>🌤️ ${slotTerdekat.weather_desc}</div>
-        <div>Suhu: ${slotTerdekat.t}°C</div>
-        <div>Kelembaban: ${slotTerdekat.hu}%</div>
-        <div class="cuaca-slot">🕒 Slot BMKG: ${new Date(slotTerdekat.local_datetime).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
-      `;
-    } else {
-      cuacaSekarangEl.textContent = "Prediksi cuaca tidak tersedia.";
-    }
+    // tampilkan cuaca sekarang
+    cuacaSekarangEl.innerHTML = `
+      <div>🌤️ ${slotTerdekat.weather_desc}</div>
+      <div>Suhu: ${slotTerdekat.t}°C</div>
+      <div>Kelembaban: ${slotTerdekat.hu}%</div>
+      <div class="cuaca-slot">🕒 ${new Date(slotTerdekat.local_datetime).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
+    `;
 
-    // prediksi 3 slot berikutnya
+    // tampilkan prediksi 3 slot berikutnya
     cuacaPrediksiEl.innerHTML = "";
-    const indexTerdekat = semuaSlot.indexOf(slotTerdekat);
-    const prediksiNext = semuaSlot.slice(indexTerdekat+1, indexTerdekat+4);
-    prediksiNext.forEach(slot=> addPrediksi(slot));
+    const idx = semuaSlot.indexOf(slotTerdekat);
+    semuaSlot.slice(idx+1, idx+4).forEach(addPrediksi);
 
-  } catch(err){
-    cuacaSekarangEl.textContent = "Prediksi cuaca tidak tersedia.";
+  } catch(err) {
     console.error(err);
+    cuacaSekarangEl.textContent = "Prediksi cuaca tidak tersedia.";
   }
 }
 
-// ===== Tambah slot prediksi ke tampilan =====
 function addPrediksi(slot){
   const div = document.createElement("div");
   div.className = "cuaca-item";
@@ -174,7 +201,10 @@ function addPrediksi(slot){
     <div>🌤️ ${slot.weather_desc}</div>
     <div>Suhu: ${slot.t}°C</div>
     <div>Kelembaban: ${slot.hu}%</div>
-    <div class="cuaca-slot">🕒 Slot BMKG: ${new Date(slot.local_datetime).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
+    <div class="cuaca-slot">🕒 ${new Date(slot.local_datetime).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
   `;
   cuacaPrediksiEl.appendChild(div);
 }
+
+// Jalankan pertama kali
+deteksiLokasi();
